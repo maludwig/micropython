@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include <string.h>
 
+
 #include "py/runtime.h"
 #include "py/stream.h"
 #include "py/mphal.h"
@@ -35,31 +36,7 @@
 #include "modmachine.h"
 
 #include "driver/spi_master.h"
-
-#define MP_HW_SPI_MAX_XFER_BYTES (4092)
-#define MP_HW_SPI_MAX_XFER_BITS (MP_HW_SPI_MAX_XFER_BYTES * 8) // Has to be an even multiple of 8
-
-typedef struct _machine_hw_spi_obj_t {
-    mp_obj_base_t base;
-    spi_host_device_t host;
-    uint32_t baudrate;
-    uint8_t polarity;
-    uint8_t phase;
-    uint8_t bits;
-    uint8_t firstbit;
-    int8_t sck;
-    int8_t mosi;
-    int8_t miso;
-    spi_device_handle_t spi;
-    enum {
-        MACHINE_HW_SPI_STATE_NONE,
-        MACHINE_HW_SPI_STATE_INIT,
-        MACHINE_HW_SPI_STATE_DEINIT
-    } state;
-} machine_hw_spi_obj_t;
-
-// Static objects mapping to HSPI and VSPI hardware peripherals
-STATIC machine_hw_spi_obj_t machine_hw_spi_obj[2];
+#include "machine_hw_spi.h"
 
 STATIC void machine_hw_spi_deinit_internal(machine_hw_spi_obj_t *self) {
     switch (spi_bus_remove_device(self->spi)) {

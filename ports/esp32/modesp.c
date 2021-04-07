@@ -28,6 +28,7 @@
  */
 
 #include <stdio.h>
+#include <math.h>
 
 #if !MICROPY_ESP_IDF_4
 #include "rom/gpio.h"
@@ -115,6 +116,57 @@ STATIC mp_obj_t esp_gpio_matrix_out(size_t n_args, const mp_obj_t *args) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(esp_gpio_matrix_out_obj, 4, 4, esp_gpio_matrix_out);
 
+
+float IRAM_ATTR many_hypots() {
+    float x = 1.1;
+    float y = 1.0001;
+    float h;
+    for (int i = 0; i < 1000; i++) {
+        h = hypot(x,y);
+        h = hypot(h,y);
+        h = hypot(h,y);
+        h = hypot(h,y);
+        h = hypot(h,y);
+        h = hypot(h,y);
+        h = hypot(h,y);
+        h = hypot(h,y);
+        h = hypot(h,y);
+        x = hypot(h,y);
+    }
+    return h;
+}
+STATIC mp_obj_t many_hypots_() {
+    return mp_obj_new_float(many_hypots());
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(many_hypots_obj, many_hypots_);
+
+STATIC mp_obj_t esp_led_on_() {
+    GPIO_REG_WRITE(GPIO_OUT_W1TS_REG, 4);
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(esp_led_on_obj, esp_led_on_);
+
+STATIC mp_obj_t esp_led_off_() {
+    for (int i = 0; i < 10000; i++) {
+        GPIO_REG_WRITE(GPIO_OUT_W1TC_REG, 4);
+    }
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_0(esp_led_off_obj, esp_led_off_);
+
+STATIC mp_obj_t esp_pin_set_(mp_obj_t pin_mask) {
+    esp_pin_set(mp_obj_get_int(pin_mask));
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp_pin_set_obj, esp_pin_set_);
+
+
+STATIC mp_obj_t esp_pin_clear_(mp_obj_t pin_mask) {
+    esp_pin_clear(mp_obj_get_int(pin_mask));
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(esp_pin_clear_obj, esp_pin_clear_);
+
 STATIC mp_obj_t esp_neopixel_write_(mp_obj_t pin, mp_obj_t buf, mp_obj_t timing) {
     mp_buffer_info_t bufinfo;
     mp_get_buffer_raise(buf, &bufinfo, MP_BUFFER_READ);
@@ -156,6 +208,13 @@ STATIC const mp_rom_map_elem_t esp_module_globals_table[] = {
 
     { MP_ROM_QSTR(MP_QSTR_gpio_matrix_in), MP_ROM_PTR(&esp_gpio_matrix_in_obj) },
     { MP_ROM_QSTR(MP_QSTR_gpio_matrix_out), MP_ROM_PTR(&esp_gpio_matrix_out_obj) },
+
+    { MP_ROM_QSTR(MP_QSTR_many_hypots), MP_ROM_PTR(&many_hypots_obj) },
+    // { MP_ROM_QSTR(MP_QSTR_led_onh), MP_ROM_PTR(&many_hypots_obj) },
+    { MP_ROM_QSTR(MP_QSTR_led_on), MP_ROM_PTR(&esp_led_on_obj) },
+    { MP_ROM_QSTR(MP_QSTR_led_off), MP_ROM_PTR(&esp_led_off_obj) },
+    { MP_ROM_QSTR(MP_QSTR_esp_pin_set), MP_ROM_PTR(&esp_pin_set_obj) },
+    { MP_ROM_QSTR(MP_QSTR_esp_pin_clear), MP_ROM_PTR(&esp_pin_clear_obj) },
 
     { MP_ROM_QSTR(MP_QSTR_neopixel_write), MP_ROM_PTR(&esp_neopixel_write_obj) },
     { MP_ROM_QSTR(MP_QSTR_neopixel_write_timings), MP_ROM_PTR(&esp_neopixel_write_timings_obj) },

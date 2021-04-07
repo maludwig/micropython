@@ -8,6 +8,7 @@
 #include "py/mpconfig.h"
 #include "py/mphal.h"
 #include "modesp.h"
+#include "machine_hw_spi.h"
 
 /**
  * WS2812 timing
@@ -37,6 +38,14 @@
 #define WS2812B_T1L_US (0.35)
 
 #define CPU_TICKS_HALFWAY (2147483648) // 2**31
+
+void IRAM_ATTR esp_pin_set(uint32_t pin_mask) {
+    GPIO_REG_WRITE(GPIO_OUT_W1TS_REG, pin_mask);
+}
+
+void IRAM_ATTR esp_pin_clear(uint32_t pin_mask) {
+    GPIO_REG_WRITE(GPIO_OUT_W1TC_REG, pin_mask);
+}
 
 __attribute__((always_inline)) static inline void wait_until_tick(uint32_t wait_until_tick) {
     // This function waits for the CPU clock cycle counting register to read the value specified
@@ -93,11 +102,11 @@ uint32_t IRAM_ATTR esp_neopixel_write_timings(uint8_t pin, uint8_t *pixel_bytes,
         if (pixel_color_byte & color_bit_mask) {
             // Send a 1
             // Set high
-            GPIO_REG_WRITE(GPIO_OUT_W1TS_REG, pin_mask);                 
+            GPIO_REG_WRITE(GPIO_OUT_W1TS_REG, pin_mask);
             start_time += t1high;
             wait_until_tick(start_time);
             // Set low
-            GPIO_REG_WRITE(GPIO_OUT_W1TC_REG, pin_mask);                 
+            GPIO_REG_WRITE(GPIO_OUT_W1TC_REG, pin_mask);
             start_time += t1low;
         } else {
             // Send a 0
